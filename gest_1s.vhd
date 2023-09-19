@@ -17,18 +17,22 @@ port (
 END gest_1s;
 
 ARCHITECTURE gest_1s_Arch of gest_1s is
+SIGNAL S_gest : std_logic;
 SIGNAL sig_bd : std_logic;
 
 begin
 
+process(start,clk_1s)
+begin
+		if ((clk_1s and continue) or (start and not continue)) = '1' then
+			sig_bd <='1';
+			end if;
+		if reset='1' then
+			sig_bd<='0';
+			end if;
+end process;
 
-if reset='1' then 
-	sig_bd <='0';
-	
-elsif ((clk_1s='1' and continue='1') or (start='1' and continue='0')) then
-	sig_bd <='1';
+sortie<=sig_bd;
 
-end if;
-sortie <= sig_bd;
 
 END gest_1s_Arch ;
