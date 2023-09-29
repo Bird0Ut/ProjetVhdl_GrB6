@@ -22,7 +22,7 @@ SIGNAL sig_bd : std_logic;
 
 begin
 
-process(start,clk_1s)
+process(clk_1s)
 begin
 		if ((clk_1s and continue) or (start and not continue)) = '1' then
 			sig_bd <='1';
