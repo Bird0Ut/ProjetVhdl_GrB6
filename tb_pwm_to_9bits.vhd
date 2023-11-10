@@ -32,52 +32,85 @@ END tb_pwm_to_9bits;
 ARCHITECTURE pwm_to_9bits_arch OF tb_pwm_to_9bits IS
 -- constants                                                 
 -- signals                                                   
-SIGNAL clk_conv : STD_LOGIC;
-SIGNAL data_compas : STD_LOGIC_VECTOR(8 DOWNTO 0);
-SIGNAL data_valid : STD_LOGIC;
-SIGNAL pwm_comp : STD_LOGIC;
-SIGNAL trig : STD_LOGIC;
+SIGNAL clk         : std_logic;
+SIGNAL clk_cpt         : std_logic;
+SIGNAL reset       : std_logic;
+SIGNAL pwm         : std_logic;
+SIGNAL clk_1s      : std_logic;
+SIGNAL continue    : std_logic;
+SIGNAL start       : std_logic;
+SIGNAL Data_valid  : std_logic;
+SIGNAL Data_compas : std_logic_vector(8 downto 0);
+SIGNAL out_1s      : std_logic;
+
 COMPONENT pwm_to_9bits
 	PORT (
-	clk_conv : IN STD_LOGIC;
-	data_compas : OUT STD_LOGIC_VECTOR(8 DOWNTO 0);
-	data_valid : OUT STD_LOGIC;
-	pwm_comp : IN STD_LOGIC;
-	trig : IN STD_LOGIC
+         clk         : in  std_logic;
+			clk_cpt     : in  std_logic; 
+         reset       : in  std_logic;
+			pwm         : in std_logic;
+			clk_1s      : in std_logic;
+			continue    : in std_logic;
+			start       : in std_logic;
+			Data_valid  : out std_logic; 
+			Data_compas : out std_logic_vector(8 downto 0);
+			out_1s      : out std_logic
 	);
 END COMPONENT;
 BEGIN
 	i1 : pwm_to_9bits
 	PORT MAP (
 -- list connections between master ports and signals
-	clk_conv => clk_conv,
-	data_compas => data_compas,
-	data_valid => data_valid,
-	pwm_comp => pwm_comp,
-	trig => trig
+	clk => clk,
+	clk_cpt => clk_cpt,
+	reset => reset,
+	Data_compas => Data_compas,
+	Data_valid => Data_valid,
+	pwm => pwm,
+	clk_1s => clk_1s,
+	continue => continue,
+	start => start,
+	out_1s => out_1s
 	);
 	
-clk : PROCESS                                               
+clk_test : PROCESS                                               
 -- variable declarations                                     
 BEGIN                                                        
    
-			clk_conv <= '1';
+			clk <= '1';
+			WAIT FOR 10ns;
+			clk <= '0';
+			WAIT FOR 10ns;
+			                                                       
+END PROCESS clk_test; 
+
+clk_cptt : PROCESS                                               
+-- variable declarations                                     
+BEGIN                                                        
+   
+			clk_cpt <= '1';
 			WAIT FOR 50ns;
-			clk_conv <= '0';
+			clk_cpt <= '0';
 			WAIT FOR 50ns;
 			                                                       
-END PROCESS clk; 	
+END PROCESS clk_cptt; 	
 	
 	
 pwm_simu : PROCESS  	
 BEGIN                                                        
    
-			pwm_comp <= '1';
+			pwm <= '0';
+			WAIT FOR 2 ms;
+			pwm <= '1';
+			WAIT FOR 2.5 ms;
+			pwm <= '0';
+			WAIT FOR 1.6 ms;
+			pwm <= '0';
+			WAIT FOR 2.5 ms;
+			pwm <= '1';
 			WAIT FOR 1 ms;
-			pwm_comp <= '0';
-			WAIT FOR 2.5ms;
-			pwm_comp <= '1';
-			WAIT FOR 1.5ms;
+			pwm <= '0';
+			WAIT FOR 2.5 ms;
 			
 			                                                       
 END PROCESS pwm_simu; 	
@@ -85,11 +118,27 @@ END PROCESS pwm_simu;
 trigguer : PROCESS  	
 BEGIN                                                        
    
-			trig  <= '1';
-			WAIT FOR 25ms;
-			trig  <= '0';
+			clk_1s  <= '0';
+			WAIT FOR 5 ms;
+			clk_1s  <= '1';
 			WAIT FOR 25ms;
 			                                                       
 END PROCESS trigguer; 
+
+CONTI : PROCESS  	
+BEGIN                                                        
+   
+			continue  <= '1';
+			start <= '0';
+			reset <= '0';
+			WAIT FOR 25ms;
+			continue  <= '1';
+			start <= '0';
+			reset <= '0';
+			WAIT FOR 25ms;
+			                                                       
+END PROCESS CONTI; 
+
+
                                           
 END pwm_to_9bits_arch;

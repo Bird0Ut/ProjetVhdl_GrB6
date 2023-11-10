@@ -59,7 +59,6 @@ begin
 						else 
 							etat_suivant <= etat_present;
 						end if;
-						enable_cmp <= '0';
 						
 				when etat1 => 
 						if clk_1s = '1' then 
@@ -85,7 +84,6 @@ begin
 						else 
 							etat_suivant <= etat_present;
 						end if;
-						enable_cmp <= '1';
 						
 						
 				when etat6 => 
@@ -115,15 +113,18 @@ begin
 				end if;
 			else 
 				cpt <= "0000";
-				data_c <= "000000000";
+				--data_c <= "000000000";
 			
         end if;
 		 end if;
     end process;
+	 
+		enable_cmp <= '1' when etat_present = etat3 else
+						  '0';
 
 		out_1s <= enable_cmp;
-		Data_compas <= test ;
-		--Data_compas <= data_c;
+		--Data_compas <= test ;
+		Data_compas <= data_c;
 		--Data_valid <= data_v;
 		
 end architecture behavioral;
