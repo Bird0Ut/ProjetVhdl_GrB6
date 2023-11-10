@@ -78,9 +78,9 @@ clk_test : PROCESS
 BEGIN                                                        
    
 			clk <= '1';
-			WAIT FOR 10ns;
+			WAIT FOR 1ns;
 			clk <= '0';
-			WAIT FOR 10ns;
+			WAIT FOR 1ns;
 			                                                       
 END PROCESS clk_test; 
 
@@ -89,9 +89,9 @@ clk_cptt : PROCESS
 BEGIN                                                        
    
 			clk_cpt <= '1';
-			WAIT FOR 50ns;
+			WAIT FOR 5ns;
 			clk_cpt <= '0';
-			WAIT FOR 50ns;
+			WAIT FOR 5ns;
 			                                                       
 END PROCESS clk_cptt; 	
 	
@@ -100,17 +100,17 @@ pwm_simu : PROCESS
 BEGIN                                                        
    
 			pwm <= '0';
-			WAIT FOR 2 ms;
+			WAIT FOR 2 us;
 			pwm <= '1';
-			WAIT FOR 2.5 ms;
+			WAIT FOR 2.5 us;
 			pwm <= '0';
-			WAIT FOR 1.6 ms;
+			WAIT FOR 1.6 us;
 			pwm <= '0';
-			WAIT FOR 2.5 ms;
+			WAIT FOR 2.5 us;
 			pwm <= '1';
-			WAIT FOR 1 ms;
+			WAIT FOR 1 us;
 			pwm <= '0';
-			WAIT FOR 2.5 ms;
+			WAIT FOR 2.5 us;
 			
 			                                                       
 END PROCESS pwm_simu; 	
@@ -119,9 +119,9 @@ trigguer : PROCESS
 BEGIN                                                        
    
 			clk_1s  <= '0';
-			WAIT FOR 5 ms;
+			WAIT FOR 10 us;
 			clk_1s  <= '1';
-			WAIT FOR 25ms;
+			WAIT FOR 10 us;
 			                                                       
 END PROCESS trigguer; 
 
