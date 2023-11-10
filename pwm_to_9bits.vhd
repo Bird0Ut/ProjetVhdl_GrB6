@@ -3,52 +3,127 @@ Use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-ENTITY pwm_to_9bits is 
 
-port (
-		trig : in std_logic;
-		clk_conv : in std_logic;
-		pwm_comp : in std_logic;
-		data_valid : out std_logic; --=1 lorsque une mesure est valide -- est remis à 0 quand start_stop passe à 0 
-		data_compas : out std_logic_vector(8 downto 0)
-		
-	);
+entity pwm_to_9bits is
+    port (
+      clk         : in  std_logic;
+		clk_cpt     : in  std_logic; 
+      reset       : in  std_logic;
+		pwm         : in std_logic;
+		clk_1s      : in std_logic;
+		continue    : in std_logic;
+		start       : in std_logic;
+		Data_valid  : out std_logic; --=1 lorsque une mesure est valide -- est remis à 0 quand start_stop passe à 0 
+		Data_compas : out std_logic_vector(8 downto 0);
+		out_1s      : out std_logic
+    );
+end entity pwm_to_9bits;
+
+architecture behavioral of pwm_to_9bits is
+    -- Déclarer ici les signaux internes et les types personnalisés si nécessaire
+		SIGNAL cpt : std_logic_vector(3 downto 0);
+		SIGNAL data_c : std_logic_vector(8 downto 0);
+		SIGNAL test : std_logic_vector(8 downto 0);
+
+		SIGNAL enable_cmp : std_logic;
+    -- Définir les états possibles de la MAE
+		type etat is (etat0, etat1, etat2, etat3,etat6);
+		signal etat_present , etat_suivant : etat; 
+    
+begin
+
+		-- Gestion clk MAE
+	process(reset, clk)  
+		begin   
+			if (reset = '1') then    
+				etat_present <= etat0;   
+			elsif clk'event and clk = '1' then    
+				etat_present <= etat_suivant;   
+			end if;  
+	end process; 
 	
-END pwm_to_9bits;
+	   
+		-- Debut MAE
+	process(continue,pwm,clk_1s,start)  
+		begin
+			case etat_present is
+			
+				when etat0 => 
+						if continue = '1' then 
+						
+							test <= "000000001";
+							etat_suivant <= etat1;
+						elsif  continue = '0' and start = '0' then 
+							test <= "000001100";
+							etat_suivant <= etat6;
+						else 
+							etat_suivant <= etat_present;
+						end if;
+						enable_cmp <= '0';
+						
+				when etat1 => 
+						if clk_1s = '1' then 
+							test <= "000000010";
+							etat_suivant <= etat2;
+						else 
+							etat_suivant <= etat_present;
+						end if;	
+						
+				when etat2 => 
+						if pwm = '1' then 
+							test <= "000000011";
+							etat_suivant <= etat3;
+						else 
+							etat_suivant <= etat_present;
+						end if;
+												
+				when etat3 => 
+						if pwm = '0' then  
+							test <= "000000000";
+							
+							etat_suivant <= etat0;
+						else 
+							etat_suivant <= etat_present;
+						end if;
+						enable_cmp <= '1';
+						
+						
+				when etat6 => 
+						if start = '1' then 
+							etat_suivant <= etat2;
+						else 
+							etat_suivant <= etat_present;
+						end if;
+			end case;			
+	end process;
+	
+	
+	--
 
-ARCHITECTURE gest_1s_Arch of pwm_to_9bits is
-SIGNAL cpt : std_logic_vector(8 downto 0);
-SIGNAL cpt_var : std_logic_vector(8 downto 0);
-SIGNAL en_mesure : std_logic := '0';
-SIGNAL en_mesure_bis : std_logic;
+    process (clk_cpt,enable_cmp)
+    begin
+        if rising_edge(clk_cpt) then
+			if enable_cmp = '1' then 
+				if cpt = "1010" then 
+					if data_c = "101110001" then
+						data_c <= data_c;
+					else 
+						data_c <= data_c + 1;
+					end if;
+				else 
+					cpt <= cpt+1;
+				end if;
+			else 
+				cpt <= "0000";
+				data_c <= "000000000";
+			
+        end if;
+		 end if;
+    end process;
 
-begin
-
-
-
-process(pwm_comp,trig)
-begin
-  IF (pwm_comp='1' and trig='1') THEN
-		en_mesure<='1';
-	ELSIF (trig ='0') THEN
-		en_mesure<='0';
-	END IF;
-end process;
-
-process(clk_conv)
-begin
-	IF en_mesure='1' THEN
-		  IF clk_conv'event and clk_conv='1' THEN
-			  cpt <= cpt + 1;
-		  END IF;
-	ELSE
-		cpt <="000000000";		
-	END IF;
-end process;
-
-
-data_valid <= en_mesure;
-data_compas <= cpt;
-
-
-END gest_1s_Arch ;
+		out_1s <= enable_cmp;
+		Data_compas <= test ;
+		--Data_compas <= data_c;
+		--Data_valid <= data_v;
+		
+end architecture behavioral;
