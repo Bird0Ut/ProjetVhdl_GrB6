@@ -26,9 +26,8 @@ architecture behavioral of pwm_to_9bits is
 		SIGNAL test : std_logic_vector(8 downto 0);
 
 		SIGNAL enable_cmp : std_logic;
-		SIGNAL reset_cmp : std_logic;
     -- Définir les états possibles de la MAE
-		type etat is (etat0, etat1, etat2, etat3, etat4,etat6);
+		type etat is (etat0, etat1, etat2, etat3,etat6);
 		signal etat_present , etat_suivant : etat; 
     
 begin
@@ -37,7 +36,7 @@ begin
 	process(reset, clk)  
 		begin   
 			if (reset = '1') then    
-				etat_present <= etat0;
+				etat_present <= etat0;   
 			elsif clk'event and clk = '1' then    
 				etat_present <= etat_suivant;   
 			end if;  
@@ -50,7 +49,7 @@ begin
 			case etat_present is
 			
 				when etat0 => 
-						if continue = '1' and clk_1s = '0' then 
+						if continue = '1' then 
 						
 							test <= "000000001";
 							etat_suivant <= etat1;
@@ -60,6 +59,7 @@ begin
 						else 
 							etat_suivant <= etat_present;
 						end if;
+						enable_cmp <= '0';
 						
 				when etat1 => 
 						if clk_1s = '1' then 
@@ -67,24 +67,17 @@ begin
 							etat_suivant <= etat2;
 						else 
 							etat_suivant <= etat_present;
-						end if;
-					
-				when etat2 =>
-						if pwm = '0' then
+						end if;	
+						
+				when etat2 => 
+						if pwm = '1' then 
+							test <= "000000011";
 							etat_suivant <= etat3;
 						else 
 							etat_suivant <= etat_present;
 						end if;
-							
-				when etat3 => 
-						if pwm = '1' then 
-							test <= "000000011";
-							etat_suivant <= etat4;
-						else 
-							etat_suivant <= etat_present;
-						end if;
 												
-				when etat4 => 
+				when etat3 => 
 						if pwm = '0' then  
 							test <= "000000000";
 							
@@ -92,6 +85,7 @@ begin
 						else 
 							etat_suivant <= etat_present;
 						end if;
+						enable_cmp <= '1';
 						
 						
 				when etat6 => 
@@ -106,43 +100,30 @@ begin
 	
 	--
 
-    process (clk_cpt,enable_cmp,reset_cmp)
+    process (clk_cpt,enable_cmp)
     begin
-		  if reset_cmp = '1' then
-				cpt <= "0000";
-				data_c <= "000000000";
-		  else
-			  if rising_edge(clk_cpt) then
-				if enable_cmp = '1' then 
-					if cpt = "1010" then 
-						if data_c = "101110001" then
-							data_c <= data_c;
-						else 
-							data_c <= data_c + 1;
-						end if;
+        if rising_edge(clk_cpt) then
+			if enable_cmp = '1' then 
+				if cpt = "1010" then 
+					if data_c = "101110001" then
+						data_c <= data_c;
 					else 
-						cpt <= cpt+1;
+						data_c <= data_c + 1;
 					end if;
 				else 
-					cpt <= "0000";
-					--data_c <= "000000000";
-			end if;
+					cpt <= cpt+1;
+				end if;
+			else 
+				cpt <= "0000";
+				data_c <= "000000000";
 			
         end if;
 		 end if;
     end process;
-	 
-		enable_cmp <= '1' when etat_present = etat4 else
-						  '0';
-						  
-		reset_cmp <= '1' when etat_present = etat3 and pwm = '1' else
-						 '0';
-		
-		Data_valid <= '0' when etat_present = etat4 else
-						  '1';
 
 		out_1s <= enable_cmp;
-		--Data_compas <= test ;
-		Data_compas <= data_c;
+		Data_compas <= test ;
+		--Data_compas <= data_c;
+		--Data_valid <= data_v;
 		
 end architecture behavioral;
